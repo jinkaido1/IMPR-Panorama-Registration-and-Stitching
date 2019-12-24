@@ -116,11 +116,9 @@ def _build_patch(point, desc_rad):
 
 def _get_patch(pos, desc_rad):
 	"""Returns K*K patch around pos."""
-	K = 1 + 2 * desc_rad
-	values_x = [n + pos[0] for n in range(-desc_rad, desc_rad + 1)]
-	values_y = [n + pos[1] for n in range(-desc_rad, desc_rad + 1)]
-	final_patch = np.array([np.array([(x, y) for y in values_y]) for x in values_x])
-	return final_patch
+	values_x = np.arange(-desc_rad + pos[0], desc_rad + pos[0] + 1)
+	values_y = np.arange(-desc_rad + pos[1], desc_rad + pos[1] + 1)
+	return np.meshgrid(values_x, values_y)
 
 
 def sample_descriptor(im, pos, desc_rad):
@@ -132,21 +130,18 @@ def sample_descriptor(im, pos, desc_rad):
 	:return: A 3D array with shape (N,K,K) containing the ith descriptor at desc[i,:,:].
 	"""
 	# Task 3.2
-	K, N = 1 + 2 * desc_rad, pos.shape[0]
+	K, N = 1 + 2 * desc_rad, len(pos)
 	descriptors = np.zeros(shape=(N, K, K))
 	for ind, p in enumerate(pos):
 		patch = _get_patch(p, desc_rad)
 		d_tilda = map_coordinates(im, patch, order=1, prefilter=False)
-		Mu = descriptors.mean()
+		Mu = d_tilda.mean()
 		numerator = d_tilda - Mu
-		denominator = np.linalg.norm(d_tilda - Mu)
-		d = numerator / denominator
-		descriptors[:, :, ind] = d
+		denominator = np.linalg.norm((d_tilda - Mu))
+		if denominator:
+			descriptors[ind, :, :] = numerator / denominator
+		descriptors[ind, :, :] = d_tilda
 	return descriptors
-
-
-
-
 
 
 def find_features(pyr):
@@ -158,7 +153,6 @@ def find_features(pyr):
 				   These coordinates are provided at the pyramid level pyr[0].
 				2) A feature descriptor array with shape (N,K,K)
 	"""
-
 	pass
 
 
