@@ -7,18 +7,50 @@ Start Date: Dec 24, 2019.
 """
 import os
 import shutil
-import sol4_utils
 import numpy as np
+import sol4_utils
 import matplotlib.pyplot as plt
 
 from imageio import imwrite
 from scipy.ndimage import label, center_of_mass
 from scipy.ndimage.filters import maximum_filter
+from scipy.ndimage.filters import convolve
 from scipy.ndimage.morphology import generate_binary_structure
 
+"""
+Constants.
+"""
+# The minimal value single pixel can have.
+MIN_COLOR = 0.
+
+# The maximal value single pixel can have.
+MAX_COLOR = 255
+
+# The number of legal values single pixel can have.
+COLORS_NUM = 256
+
+# Number of dimension in rgb image.
+RGB_DIMS = 3
+
+# Representation of gray-scale and rgb image.
+GRAY_REP = 1
+RGB_REP = 2
+
+# Convolution vector for deriving.
+DER_VEC = np.array([[1, 0, -1]])
+DER_VEC_T = DER_VEC.T
+
+# Blurring kernel size.
+KERNEL_SIZE_BLUR = 3
+
+# For question 3.1.
+K = 0.04
+
+# Max levels in gaussian (question 3.2).
+LEVELS = 3
 
 """
-Given API.
+3 - Image Pair Registration.
 """
 
 
@@ -29,7 +61,35 @@ def harris_corner_detector(im):
 	:param im: A 2D array representing an image.
 	:return: An array with shape (N,2), where ret[i,:] are the [x,y] coordinates of the ith corner points.
 	"""
-	pass
+	# Task 3.1
+	Ix, Iy = convolve(im, DER_VEC), convolve(im, DER_VEC_T)
+
+	Ix_squared = Ix * Ix
+	Iy_squared = Iy * Iy
+	IxIy = Ix * Iy
+	IyIx = Iy * Ix
+
+	Ix_squared_blured = sol4_utils.blur_spatial(Ix_squared, KERNEL_SIZE_BLUR)
+	Iy_squared_blured = sol4_utils.blur_spatial(Iy_squared, KERNEL_SIZE_BLUR)
+	IxIy_blured = sol4_utils.blur_spatial(IxIy, KERNEL_SIZE_BLUR)
+	IyIx_blured = sol4_utils.blur_spatial(IyIx, KERNEL_SIZE_BLUR)
+
+	M = np.zeros(shape=im.shape[0] * im.shape[1] * 2 * 2).reshape((im.shape[0], im.shape[1], 2, 2))
+	M[:, :, 0, 0] = Ix_squared_blured
+	M[:, :, 0, 1] = IxIy_blured
+	M[:, :, 1, 0] = IyIx_blured
+	M[:, :, 1, 1] = Iy_squared_blured
+
+	R1 = np.linalg.det(M)  # det(M)
+	R2 = np.trace(M, axis1=2, axis2=3)  # trace(M)
+	R = R1 - K * np.power(R2, 2)
+
+	non_max_sup = non_maximum_suppression(R)
+
+	resultX, resultY = np.where(non_max_sup == True)[0], np.where(non_max_sup == True)[1]
+	pairs = np.zeros(shape=(len(resultX), 2))
+	pairs[:, 0], pairs[:, 1] = resultX, resultY
+	return pairs
 
 
 def sample_descriptor(im, pos, desc_rad):
@@ -40,7 +100,23 @@ def sample_descriptor(im, pos, desc_rad):
 	:param desc_rad: "Radius" of descriptors to compute.
 	:return: A 3D array with shape (N,K,K) containing the ith descriptor at desc[i,:,:].
 	"""
+	# Task 3.2
+	# 1) Create 3 levels gaussian pyramid.
+	pyr, filter = sol4_utils.build_gaussian_pyramid(im, LEVELS, filter_size=5)
+	
 	pass
+
+
+def _build_binomial_coefficient_vector(filter_size):
+	"""Builds the binomial coefficient vector."""
+	if filter_size == 1:
+		return np.array([[1]])
+	base = np.array([1, 1])
+	vector = np.array([1, 1])
+	while len(vector) < filter_size:
+		vector = np.convolve(vector, base)
+	sum_of_vector = sum(vector)
+	return (vector / sum_of_vector).reshape(1, filter_size)
 
 
 def find_features(pyr):

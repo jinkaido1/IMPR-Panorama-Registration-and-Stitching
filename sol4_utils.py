@@ -112,6 +112,7 @@ def build_gaussian_pyramid(im, max_levels, filter_size):
 				image.
 			filter_vec - row vector of shape (1, filter_size) used for the pyramid construction.
 	"""
+
 	filter_vec = _build_binomial_coefficient_vector(filter_size)
 	pyr = [im]
 
@@ -123,5 +124,4 @@ def build_gaussian_pyramid(im, max_levels, filter_size):
 			curr_im.shape[1] >= 2 * MIN_SIZE:
 		curr_im = _reduce(curr_im, filter_vec)
 		pyr.append(curr_im)
-
 	return pyr, filter_vec
