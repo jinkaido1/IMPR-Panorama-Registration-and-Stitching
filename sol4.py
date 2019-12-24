@@ -12,7 +12,7 @@ import sol4_utils
 import matplotlib.pyplot as plt
 
 from imageio import imwrite
-from scipy.ndimage import label, center_of_mass
+from scipy.ndimage import label, center_of_mass, map_coordinates
 from scipy.ndimage.filters import maximum_filter
 from scipy.ndimage.filters import convolve
 from scipy.ndimage.morphology import generate_binary_structure
@@ -92,6 +92,37 @@ def harris_corner_detector(im):
 	return pairs
 
 
+def _transform_point(curr_level, new_level, point):
+	"""
+	Calculates the new point coordinates in
+	another image in pyramid.
+	"""
+	power = pow(2, curr_level - new_level)
+	return tuple([point[0] * power, point[1] * power])
+
+
+def _build_patch(point, desc_rad):
+	K = 1 + 2 * desc_rad
+	patch = []
+	K_half = int(K / 2)
+	for r in range(K_half + 1):
+		for c in range(K_half + 1):
+			patch.append((point[0] - r, point[1] - c))
+	for r in range(K_half, K + 1):
+		for c in range(K_half, K + 1):
+			patch.append((point[0] + r, point[1] + c))
+	return patch
+
+
+def _get_patch(pos, desc_rad):
+	"""Returns K*K patch around pos."""
+	K = 1 + 2 * desc_rad
+	values_x = [n + pos[0] for n in range(-desc_rad, desc_rad + 1)]
+	values_y = [n + pos[1] for n in range(-desc_rad, desc_rad + 1)]
+	final_patch = np.array([np.array([(x, y) for y in values_y]) for x in values_x])
+	return final_patch
+
+
 def sample_descriptor(im, pos, desc_rad):
 	"""
 	Samples descriptors at the given corners.
@@ -101,22 +132,21 @@ def sample_descriptor(im, pos, desc_rad):
 	:return: A 3D array with shape (N,K,K) containing the ith descriptor at desc[i,:,:].
 	"""
 	# Task 3.2
-	# 1) Create 3 levels gaussian pyramid.
-	pyr, filter = sol4_utils.build_gaussian_pyramid(im, LEVELS, filter_size=5)
-	
-	pass
+	K, N = 1 + 2 * desc_rad, pos.shape[0]
+	descriptors = np.zeros(shape=(N, K, K))
+	for ind, p in enumerate(pos):
+		patch = _get_patch(p, desc_rad)
+		d_tilda = map_coordinates(im, patch, order=1, prefilter=False)
+		Mu = descriptors.mean()
+		numerator = d_tilda - Mu
+		denominator = np.linalg.norm(d_tilda - Mu)
+		d = numerator / denominator
+		descriptors[:, :, ind] = d
+	return descriptors
 
 
-def _build_binomial_coefficient_vector(filter_size):
-	"""Builds the binomial coefficient vector."""
-	if filter_size == 1:
-		return np.array([[1]])
-	base = np.array([1, 1])
-	vector = np.array([1, 1])
-	while len(vector) < filter_size:
-		vector = np.convolve(vector, base)
-	sum_of_vector = sum(vector)
-	return (vector / sum_of_vector).reshape(1, filter_size)
+
+
 
 
 def find_features(pyr):
@@ -128,6 +158,7 @@ def find_features(pyr):
 				   These coordinates are provided at the pyramid level pyr[0].
 				2) A feature descriptor array with shape (N,K,K)
 	"""
+
 	pass
 
 
