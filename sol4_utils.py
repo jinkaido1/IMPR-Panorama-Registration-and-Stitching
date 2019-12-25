@@ -26,7 +26,6 @@ RGB_REP = 2
 # Minimum size of image after reducing.
 MIN_SIZE = 16
 
-
 """
 Given methods.
 """

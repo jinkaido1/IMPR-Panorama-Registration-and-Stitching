@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from imageio import imwrite
 from scipy.ndimage import label, center_of_mass, map_coordinates
 from scipy.ndimage.filters import maximum_filter
-from scipy.ndimage.filters import convolve
+from scipy.signal import convolve2d
 from scipy.ndimage.morphology import generate_binary_structure
 
 """
@@ -62,7 +62,7 @@ def harris_corner_detector(im):
 	:return: An array with shape (N,2), where ret[i,:] are the [x,y] coordinates of the ith corner points.
 	"""
 	# Task 3.1
-	Ix, Iy = convolve(im, DER_VEC), convolve(im, DER_VEC_T)
+	Ix, Iy = convolve2d(im, DER_VEC, mode="same", boundary="symm"), convolve2d(im, DER_VEC_T, mode="same", boundary="symm")
 
 	Ix_squared = Ix * Ix
 	Iy_squared = Iy * Iy
@@ -74,51 +74,12 @@ def harris_corner_detector(im):
 	IxIy_blured = sol4_utils.blur_spatial(IxIy, KERNEL_SIZE_BLUR)
 	IyIx_blured = sol4_utils.blur_spatial(IyIx, KERNEL_SIZE_BLUR)
 
-	M = np.zeros(shape=im.shape[0] * im.shape[1] * 2 * 2).reshape((im.shape[0], im.shape[1], 2, 2))
-	M[:, :, 0, 0] = Ix_squared_blured
-	M[:, :, 0, 1] = IxIy_blured
-	M[:, :, 1, 0] = IyIx_blured
-	M[:, :, 1, 1] = Iy_squared_blured
-
-	R1 = np.linalg.det(M)  # det(M)
-	R2 = np.trace(M, axis1=2, axis2=3)  # trace(M)
-	R = R1 - K * np.power(R2, 2)
-
+	detM = (Ix_squared_blured * Iy_squared_blured) - (IxIy_blured * IyIx_blured)
+	traceM = Ix_squared_blured + Iy_squared_blured
+	R = detM - K * np.power(traceM, 2)
 	non_max_sup = non_maximum_suppression(R)
 
-	resultX, resultY = np.where(non_max_sup == True)[0], np.where(non_max_sup == True)[1]
-	pairs = np.zeros(shape=(len(resultX), 2))
-	pairs[:, 0], pairs[:, 1] = resultX, resultY
-	return pairs
-
-
-def _transform_point(curr_level, new_level, point):
-	"""
-	Calculates the new point coordinates in
-	another image in pyramid.
-	"""
-	power = pow(2, curr_level - new_level)
-	return tuple([point[0] * power, point[1] * power])
-
-
-def _build_patch(point, desc_rad):
-	K = 1 + 2 * desc_rad
-	patch = []
-	K_half = int(K / 2)
-	for r in range(K_half + 1):
-		for c in range(K_half + 1):
-			patch.append((point[0] - r, point[1] - c))
-	for r in range(K_half, K + 1):
-		for c in range(K_half, K + 1):
-			patch.append((point[0] + r, point[1] + c))
-	return patch
-
-
-def _get_patch(pos, desc_rad):
-	"""Returns K*K patch around pos."""
-	values_x = np.arange(-desc_rad + pos[0], desc_rad + pos[0] + 1)
-	values_y = np.arange(-desc_rad + pos[1], desc_rad + pos[1] + 1)
-	return np.meshgrid(values_x, values_y)
+	return np.argwhere(non_max_sup.transpose())
 
 
 def sample_descriptor(im, pos, desc_rad):
@@ -130,10 +91,13 @@ def sample_descriptor(im, pos, desc_rad):
 	:return: A 3D array with shape (N,K,K) containing the ith descriptor at desc[i,:,:].
 	"""
 	# Task 3.2
-	K, N = 1 + 2 * desc_rad, len(pos)
+	K = 1 + 2 * desc_rad
+	N = len(pos)
 	descriptors = np.zeros(shape=(N, K, K))
+	x, y = np.meshgrid(np.arange(-desc_rad, desc_rad + 1), np.arange(-desc_rad, desc_rad + 1))
 	for ind, p in enumerate(pos):
-		patch = _get_patch(p, desc_rad)
+		posX, posY = p[0], p[1]
+		patch = [(y + posY) / 4., (y + posY) / 4.]
 		d_tilda = map_coordinates(im, patch, order=1, prefilter=False)
 		Mu = d_tilda.mean()
 		numerator = d_tilda - Mu
