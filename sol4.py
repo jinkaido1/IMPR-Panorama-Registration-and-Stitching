@@ -136,8 +136,12 @@ def match_features(desc1, desc2, min_score):
 				1) An array with shape (M,) and dtype int of matching indices in desc1.
 				2) An array with shape (M,) and dtype int of matching indices in desc2.
 	"""
+	array1, array2 = [], []
+	N1, N2 = desc1.shape[0], desc2.shape[1]
 
-	pass
+	for i in range(N1):
+		for j in range(N2):
+			pass
 
 
 def apply_homography(pos1, H12):

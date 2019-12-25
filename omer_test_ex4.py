@@ -18,7 +18,7 @@ def _start_test(input):
 
 
 def _end_test(input):
-	print(END_TEST.format(title=input) + "\n===== Check for errors! ======")
+	print(END_TEST.format(title=input) + "\n===== Check for errors! ======\n")
 
 
 def _notes(input):
@@ -36,12 +36,16 @@ IMAGES = [IMG1, IMG2]
 
 FILTER_SIZE = 5
 
+MIN_SCORE = 0.5
+
 """
 Controller.
 """
-test_3_1_harris_corner_detector = True
-test_3_1_sample_descriptor = True
-test_3_1_find_features = True
+test_3_1_harris_corner_detector = False
+test_3_1_sample_descriptor = False
+test_3_1_find_features = False
+test_3_2_match_features = True
+
 
 """
 Methods
@@ -50,7 +54,8 @@ Methods
 
 def _test_harris_corner_detector():
 	_start_test("3.1.1 - Harris Corner Detector")
-	_notes("(1) Checks output size only!\n"
+	_notes("\n"
+		   "(1) Checks output size only!\n"
 		   "(2) It plots an image, watch it carefully!\n"
 		   "(3) Make sure all points are in the image.")
 	im = read_image(IMG1, IMG_REP)
@@ -98,6 +103,30 @@ def _test_find_features():
 	_end_test("3.1.3 - find features")
 
 
+def _test_match_features():
+	_start_test("3.2.1 - match_features")
+	# _notes("\n"
+	# 	   "(1) Checks output size only!\n"
+	# 	   "(2) It plots 2 images! watch them carefully!\n"
+	# 	   "(3) Make sure all points are in the images.")
+	im1 = read_image(IMG1, IMG_REP)
+	pyr1, _ = sol4_utils.build_gaussian_pyramid(im1, 3, FILTER_SIZE)
+	returned_val1 = find_features(pyr1)
+	_, desc1 = returned_val1[0], returned_val1[1]
+
+	im2 = read_image(IMG2, IMG_REP)
+	pyr2, _ = sol4_utils.build_gaussian_pyramid(im2, 3, FILTER_SIZE)
+	returned_val2 = find_features(pyr2)
+	_, desc2 = returned_val2[0], returned_val2[1]
+
+	# Run method:
+	returned_val_func = match_features(desc1, desc2, MIN_SCORE)
+	matching_desc1, matching_desc2 = returned_val_func[0], returned_val_func[1]
+
+	assert len(matching_desc1.shape) == len(matching_desc2.shape) == 2
+	assert matching_desc1.shape == matching_desc2.shape
+
+
 """
 Callings.
 """
@@ -109,3 +138,6 @@ if test_3_1_sample_descriptor:
 
 if test_3_1_find_features:
 	_test_find_features()
+
+if test_3_2_match_features:
+	_test_match_features()
