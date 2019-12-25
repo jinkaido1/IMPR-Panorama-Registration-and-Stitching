@@ -44,10 +44,13 @@ DER_VEC_T = DER_VEC.T
 KERNEL_SIZE_BLUR = 3
 
 # For question 3.1.
-K = 0.04
-
-# Max levels in gaussian (question 3.2).
-LEVELS = 3
+K = 0.04                                                            # For calculating (det - k*trace).
+LEVELS = 3                                                          # Max levels in gaussian
+PATCH_SIZE = 7                                                      # Patch size.
+ORIG_LEV_IN_PYR = 0                                                 # Index of the original image in pyramid.
+SMALLEST_LEV_IN_PYR = 2                                             # Index of the smallest image in pyramid.
+LEVELS_DIFF = float(2 ** (ORIG_LEV_IN_PYR - SMALLEST_LEV_IN_PYR))   # Scalar to calculate new image index.
+DESC_RAD = 3                                                        # The radius for the descriptor.
 
 """
 3 - Image Pair Registration.
@@ -61,7 +64,7 @@ def harris_corner_detector(im):
 	:param im: A 2D array representing an image.
 	:return: An array with shape (N,2), where ret[i,:] are the [x,y] coordinates of the ith corner points.
 	"""
-	# Task 3.1
+	# Task 3.1.1
 	Ix, Iy = convolve2d(im, DER_VEC, mode="same", boundary="symm"), convolve2d(im, DER_VEC_T, mode="same", boundary="symm")
 
 	Ix_squared = Ix * Ix
@@ -90,14 +93,14 @@ def sample_descriptor(im, pos, desc_rad):
 	:param desc_rad: "Radius" of descriptors to compute.
 	:return: A 3D array with shape (N,K,K) containing the ith descriptor at desc[i,:,:].
 	"""
-	# Task 3.2
+	# Task 3.1.2
 	K = 1 + 2 * desc_rad
 	N = len(pos)
 	descriptors = np.zeros(shape=(N, K, K))
 	x, y = np.meshgrid(np.arange(-desc_rad, desc_rad + 1), np.arange(-desc_rad, desc_rad + 1))
 	for ind, p in enumerate(pos):
 		posX, posY = p[0], p[1]
-		patch = [(y + posY) / 4., (y + posY) / 4.]
+		patch = [(y + posY), (x + posX)]
 		d_tilda = map_coordinates(im, patch, order=1, prefilter=False)
 		Mu = d_tilda.mean()
 		numerator = d_tilda - Mu
@@ -117,7 +120,10 @@ def find_features(pyr):
 				   These coordinates are provided at the pyramid level pyr[0].
 				2) A feature descriptor array with shape (N,K,K)
 	"""
-	pass
+	# Task 3.1.3
+	orig_img, smallest_img = pyr[0], pyr[len(pyr) - 1]
+	corners = spread_out_corners(orig_img, PATCH_SIZE, PATCH_SIZE, DESC_RAD * (1 / LEVELS_DIFF))
+	return [corners, sample_descriptor(smallest_img, corners * LEVELS_DIFF, DESC_RAD)]
 
 
 def match_features(desc1, desc2, min_score):
@@ -130,6 +136,7 @@ def match_features(desc1, desc2, min_score):
 				1) An array with shape (M,) and dtype int of matching indices in desc1.
 				2) An array with shape (M,) and dtype int of matching indices in desc2.
 	"""
+
 	pass
 
 

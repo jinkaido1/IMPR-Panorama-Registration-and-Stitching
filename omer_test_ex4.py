@@ -39,9 +39,9 @@ FILTER_SIZE = 5
 """
 Controller.
 """
-test_3_1_harris_corner_detector = False
+test_3_1_harris_corner_detector = True
 test_3_1_sample_descriptor = True
-test_3_1_find_features = False
+test_3_1_find_features = True
 
 """
 Methods
@@ -49,7 +49,7 @@ Methods
 
 
 def _test_harris_corner_detector():
-	_start_test("3.1 - Harris Corner Detector")
+	_start_test("3.1.1 - Harris Corner Detector")
 	_notes("(1) Checks output size only!\n"
 		   "(2) It plots an image, watch it carefully!\n"
 		   "(3) Make sure all points are in the image.")
@@ -57,14 +57,15 @@ def _test_harris_corner_detector():
 	arr = harris_corner_detector(im)
 	plt.imshow(im, cmap='gray')
 	plt.scatter(x=arr[:, 0], y=arr[:, 1], marker=".")
+	plt.title("3.1.1 - Harris Corner Detector")
 	plt.show()
 	s = arr.shape
 	assert len(s) == 2 and s[1] == 2
-	_end_test("3.1 - Harris Corner Detector")
+	_end_test("3.1.2 - Harris Corner Detector")
 
 
 def _test_sample_descriptor():
-	_start_test("3.1 - sample_descriptor")
+	_start_test("3.1.2 - sample_descriptor")
 	_notes("Checks output size only!")
 	# Create 3 levels gaussian pyramid.
 	im = read_image(IMG1, IMG_REP)
@@ -76,11 +77,25 @@ def _test_sample_descriptor():
 	descriptors = sample_descriptor(smallest_img, pos, desc_rad)
 	s = descriptors.shape
 	assert len(s) == 3 and s[1] == s[2] == K
-	_end_test("3.1 - sample_descriptor")
+	_end_test("3.1.2 - sample_descriptor")
 
 
 def _test_find_features():
-	pass
+	_start_test("3.1.3 - find features")
+	_notes("Checks output size only!")
+	# Create 3 levels gaussian pyramid.
+	im = read_image(IMG1, IMG_REP)
+	pyr, _ = sol4_utils.build_gaussian_pyramid(im, 3, FILTER_SIZE)
+	desc_rad = 3
+	K = 1 + 2 * desc_rad
+	returned_val = find_features(pyr)
+	# pos.shape should be (N, 2)
+	pos, descriptor = returned_val[0], returned_val[1]
+	assert len(pos.shape) == 2 and pos.shape[1] == 2
+	# descriptor.shape should be (N, K, K)
+	assert len(descriptor.shape) == 3 and \
+		   descriptor.shape[1] == descriptor.shape[2] == K
+	_end_test("3.1.3 - find features")
 
 
 """
