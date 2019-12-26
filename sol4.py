@@ -136,12 +136,53 @@ def match_features(desc1, desc2, min_score):
 				1) An array with shape (M,) and dtype int of matching indices in desc1.
 				2) An array with shape (M,) and dtype int of matching indices in desc2.
 	"""
-	array1, array2 = [], []
+	match_ind1, match_ind2 = [], []
 	N1, N2 = desc1.shape[0], desc2.shape[1]
 
+	best1stD1j, best2ndD1j = (0, 0), (0, 0)  # (ind of patch, score)
 	for i in range(N1):
-		for j in range(N2):
-			pass
+		ind1, ind2 = i, None  # The indexes in desc1, desc2 trying to match.
+		cond1, cond2, cond3 = False, False, False  # Flags for the 3 conditions.
+		best1stD2k, best2ndD2k = (0, 0), (0, 0)   # (ind of patch, score)
+		for k in range(N2):
+			ind2 = k
+			D1j = desc1[i, :, :].flatten()
+			D2k = desc2[k, :, :].flatten()
+			Sjk = np.dot(D1j, D2k)   # num in [-1, 1]
+
+			# Set up 1 - Sjk in two best of D1j
+			if Sjk >= best2ndD1j[1]:
+				cond1 = True
+				if Sjk >= best1stD1j[1]:
+					best2ndD1j = best1stD1j
+					best1stD1j = (k, Sjk)
+				else:
+					best2ndD1j = (k, Sjk)
+
+			# Set up 2 - Sjk in two best of D2k
+			if Sjk >= best2ndD2k[1]:
+				cond2 = True
+				if Sjk >= best2ndD2k[1]:
+					best2ndD2k = best1stD2k
+					best1stD2k = (k, Sjk)
+				else:
+					best2ndD2k = (k, Sjk)
+
+			# Set up 3 - Sjk > min_score
+			if Sjk > min_score:
+				cond3 = True
+
+		# Check all the 3 conditions:
+		if cond1 and cond2 and cond3:
+			match_ind1.append(ind1)
+			match_ind2.append(ind2)
+
+		best1stD1j, best2ndD1j = (0, 0), (0, 0)  # restart params at end of loop.
+
+	return [np.array(match_ind1), np.array(match_ind2)]
+
+
+
 
 
 def apply_homography(pos1, H12):

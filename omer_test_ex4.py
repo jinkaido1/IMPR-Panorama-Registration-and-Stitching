@@ -105,10 +105,10 @@ def _test_find_features():
 
 def _test_match_features():
 	_start_test("3.2.1 - match_features")
-	# _notes("\n"
-	# 	   "(1) Checks output size only!\n"
-	# 	   "(2) It plots 2 images! watch them carefully!\n"
-	# 	   "(3) Make sure all points are in the images.")
+	_notes("\n"
+		   "(1) Checks output size only!\n"
+		   "(2) It plots 2 images! watch them carefully!\n"
+		   "(3) Make sure all points are in the images.")
 	im1 = read_image(IMG1, IMG_REP)
 	pyr1, _ = sol4_utils.build_gaussian_pyramid(im1, 3, FILTER_SIZE)
 	returned_val1 = find_features(pyr1)
@@ -122,6 +122,9 @@ def _test_match_features():
 	# Run method:
 	returned_val_func = match_features(desc1, desc2, MIN_SCORE)
 	matching_desc1, matching_desc2 = returned_val_func[0], returned_val_func[1]
+
+	print("-- Matching 1 ---\n", matching_desc1, '\n')
+	print("-- Matching 2 ---\n", matching_desc2, '\n')
 
 	assert len(matching_desc1.shape) == len(matching_desc2.shape) == 2
 	assert matching_desc1.shape == matching_desc2.shape
