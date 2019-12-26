@@ -105,9 +105,7 @@ def sample_descriptor(im, pos, desc_rad):
 		Mu = d_tilda.mean()
 		numerator = d_tilda - Mu
 		denominator = np.linalg.norm((d_tilda - Mu))
-		if denominator:
-			descriptors[ind, :, :] = numerator / denominator
-		descriptors[ind, :, :] = d_tilda
+		descriptors[ind, :, :] = numerator / denominator
 	return descriptors
 
 
@@ -137,7 +135,7 @@ def match_features(desc1, desc2, min_score):
 				2) An array with shape (M,) and dtype int of matching indices in desc2.
 	"""
 	match_ind1, match_ind2 = [], []
-	N1, N2 = desc1.shape[0], desc2.shape[1]
+	N1, N2 = desc1.shape[0], desc2.shape[0]
 
 	best1stD1j, best2ndD1j = (0, 0), (0, 0)  # (ind of patch, score)
 	for i in range(N1):
@@ -164,9 +162,9 @@ def match_features(desc1, desc2, min_score):
 				cond2 = True
 				if Sjk >= best2ndD2k[1]:
 					best2ndD2k = best1stD2k
-					best1stD2k = (k, Sjk)
+					best1stD2k = (i, Sjk)
 				else:
-					best2ndD2k = (k, Sjk)
+					best2ndD2k = (i, Sjk)
 
 			# Set up 3 - Sjk > min_score
 			if Sjk > min_score:
