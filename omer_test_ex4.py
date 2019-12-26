@@ -196,11 +196,27 @@ def _test_apply_homography():
 
 
 def _test_rasnac_homography():
-	pass
+	_start_test("3.3.2 - apply_homography")
 
+	im1 = read_image(IMG1, IMG_REP)
+	pyr1, _ = sol4_utils.build_gaussian_pyramid(im1, 3, FILTER_SIZE)
+	returned_val1 = find_features(pyr1)
+	pos1, desc1 = returned_val1[0], returned_val1[1]
 
-def _test_display_matches():
-	pass
+	im2 = read_image(IMG2, IMG_REP)
+	pyr2, _ = sol4_utils.build_gaussian_pyramid(im2, 3, FILTER_SIZE)
+	returned_val2 = find_features(pyr2)
+	pos2, desc2 = returned_val2[0], returned_val2[1]
+
+	# Run method:
+	returned_val_func = match_features(desc1, desc2, MIN_SCORE)
+	matching_desc1, matching_desc2 = returned_val_func[0], returned_val_func[1]
+
+	points1 = np.array([pos1[i] for i in matching_desc1])
+	points2 = np.array([pos2[j] for j in matching_desc2])
+
+	num_iter, inlier_tol = 1, 0
+	ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False)
 
 
 """
@@ -223,6 +239,3 @@ if test_3_3_apply_homography:
 
 if test_3_3_ransac_homography:
 	_test_rasnac_homography()
-
-if test_3_3_display_matches:
-	_test_display_matches()

@@ -135,6 +135,7 @@ def match_features(desc1, desc2, min_score):
 				1) An array with shape (M,) and dtype int of matching indices in desc1.
 				2) An array with shape (M,) and dtype int of matching indices in desc2.
 	"""
+	# Task 3.2
 	match_ind1, match_ind2 = [], []
 	N1, N2 = desc1.shape[0], desc2.shape[0]
 
@@ -203,6 +204,7 @@ def apply_homography(pos1, H12):
 	:param H12: A 3x3 homography matrix.
 	:return: An array with the same shape as pos1 with [x,y] point coordinates obtained from transforming pos1 using H12.
 	"""
+	# Task 3.3.1
 	# Add ones to each point.
 	pos1_with_ones = np.ones(shape=(pos1.shape[0], pos1.shape[1] + 1))
 	pos1_with_ones[:, :2] = pos1
@@ -219,6 +221,7 @@ def apply_homography(pos1, H12):
 
 def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False):
 	"""
+	Recommendation: Use one of np.random.choice or np.random.permutation.
 	Computes homography between two sets of points using RANSAC.
 	:param pos1: An array with shape (N,2) containing N rows of [x,y] coordinates of matched points in image 1.
 	:param pos2: An array with shape (N,2) containing N rows of [x,y] coordinates of matched points in image 2.
@@ -230,6 +233,29 @@ def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=F
 				2) An Array with shape (S,) where S is the number of inliers,
 					containing the indices in pos1/pos2 of the maximal set of inlier matches found.
 	"""
+	# Task 3.3.2
+	N = points1.shape[0]
+	homography_matrix, inliers, ourliers = None, [], []
+
+	for it in range(num_iter):
+		# Sample 2 sets of 2 points, anc calculate H12 base on the sets.
+		P1j = points1[np.random.choice(points1.shape[0], 2, replace=False)]
+		P2j = points2[np.random.choice(points2.shape[0], 2, replace=False)]
+		H12 = estimate_rigid_transform(P1j, P2j)
+
+		# Calculate P2'.
+		P2j_tag = apply_homography(P2j, H12)
+
+		# Calculate Squared Euclid Distance.
+		Ej = np.linalg.norm(P2j_tag - P2j) ** 2
+
+		if Ej < inlier_tol:
+			inliers.append()
+		else:
+			outliers.append()
+
+
+
 	pass
 
 
@@ -242,6 +268,8 @@ def display_matches(im1, im2, points1, points2, inliers):
 	:param pos2: An aray shape (N,2), containing N rows of [x,y] coordinates of matched points in im2.
 	:param inliers: An array with shape (S,) of inlier matches.
 	"""
+	# Task 3.3.3
+
 	pass
 
 
