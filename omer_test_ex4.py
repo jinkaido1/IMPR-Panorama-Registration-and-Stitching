@@ -44,8 +44,10 @@ Controller.
 test_3_1_harris_corner_detector = False
 test_3_1_sample_descriptor = False
 test_3_1_find_features = False
-test_3_2_match_features = True
-
+test_3_2_match_features = False
+test_3_3_apply_homography = False
+test_3_3_ransac_homography = True
+test_3_3_display_matches = False
 
 """
 Methods
@@ -177,6 +179,30 @@ def _test_match_features():
 
 	_end_test("3.2 - Match Features")
 
+
+def _test_apply_homography():
+	_start_test("3.3.1 - apply_homography")
+	_notes("Checks output size only!")
+	im1 = read_image(IMG1, IMG_REP)
+	pyr1, _ = sol4_utils.build_gaussian_pyramid(im1, 3, FILTER_SIZE)
+	returned_val1 = find_features(pyr1)
+	pos1, _ = returned_val1[0], returned_val1[1]
+	H12 = np.array([[1, 0, 0],
+					[0, 1, 0],
+					[0, 0, 1]])
+	result = apply_homography(pos1, H12)
+	assert result.shape == pos1.shape
+	_end_test("3.3.1 - apply_homography")
+
+
+def _test_rasnac_homography():
+	pass
+
+
+def _test_display_matches():
+	pass
+
+
 """
 Callings.
 """
@@ -191,3 +217,12 @@ if test_3_1_find_features:
 
 if test_3_2_match_features:
 	_test_match_features()
+
+if test_3_3_apply_homography:
+	_test_apply_homography()
+
+if test_3_3_ransac_homography:
+	_test_rasnac_homography()
+
+if test_3_3_display_matches:
+	_test_display_matches()

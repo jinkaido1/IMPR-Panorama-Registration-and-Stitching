@@ -203,7 +203,18 @@ def apply_homography(pos1, H12):
 	:param H12: A 3x3 homography matrix.
 	:return: An array with the same shape as pos1 with [x,y] point coordinates obtained from transforming pos1 using H12.
 	"""
-	pass
+	# Add ones to each point.
+	pos1_with_ones = np.ones(shape=(pos1.shape[0], pos1.shape[1] + 1))
+	pos1_with_ones[:, :2] = pos1
+	# Multiply each by H12.
+	pos1_with_ones_multiplied = np.matmul(pos1_with_ones, H12)
+	# Divide by last coordinate.
+	pos2 = pos1_with_ones_multiplied[:, :2]
+	divide_by = np.zeros(shape=pos2.shape)
+	divide_by[:, 0] = pos1_with_ones_multiplied[:, 2]
+	divide_by[:, 1] = pos1_with_ones_multiplied[:, 2]
+	result = pos2 / divide_by
+	return result
 
 
 def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False):
