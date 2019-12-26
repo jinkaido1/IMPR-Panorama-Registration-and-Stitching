@@ -58,20 +58,34 @@ def _test_harris_corner_detector():
 		   "(1) Checks output size only!\n"
 		   "(2) It plots an image, watch it carefully!\n"
 		   "(3) Make sure all points are in the image.")
-	im = read_image(IMG1, IMG_REP)
-	arr = harris_corner_detector(im)
-	plt.imshow(im, cmap='gray')
-	plt.scatter(x=arr[:, 0], y=arr[:, 1], marker=".")
+	im1 = read_image(IMG1, IMG_REP)
+	arr1 = harris_corner_detector(im1)
+	plt.imshow(im1, cmap='gray')
+	plt.scatter(x=arr1[:, 0], y=arr1[:, 1], marker=".")
 	plt.title("3.1.1 - Harris Corner Detector")
 	plt.show()
-	s = arr.shape
-	assert len(s) == 2 and s[1] == 2
+	s1 = arr1.shape
+
+	im2 = read_image(IMG2, IMG_REP)
+	arr2 = harris_corner_detector(im2)
+	plt.imshow(im2, cmap='gray')
+	plt.scatter(x=arr2[:, 0], y=arr2[:, 1], marker=".")
+	plt.title("3.1.1 - Harris Corner Detector")
+	plt.show()
+	s2 = arr2.shape
+
+	assert len(s1) == 2 and s1[1] == 2
+	assert len(s2) == 2 and s2[1] == 2
 	_end_test("3.1.2 - Harris Corner Detector")
 
 
 def _test_sample_descriptor():
 	_start_test("3.1.2 - sample_descriptor")
-	_notes("Checks output size only!")
+	_notes("\n"
+		   "(1) Checks output size only!\n"
+		   "(2) It is not suppose to make the method work, just makes sure it runs.\n"
+		   "(3) Might have zero division error."
+		   "\n")
 	# Create 3 levels gaussian pyramid.
 	im = read_image(IMG1, IMG_REP)
 	pyr, filter = sol4_utils.build_gaussian_pyramid(im, 3, FILTER_SIZE)
@@ -89,17 +103,30 @@ def _test_find_features():
 	_start_test("3.1.3 - find features")
 	_notes("Checks output size only!")
 	# Create 3 levels gaussian pyramid.
-	im = read_image(IMG1, IMG_REP)
-	pyr, _ = sol4_utils.build_gaussian_pyramid(im, 3, FILTER_SIZE)
+	im1 = read_image(IMG1, IMG_REP)
+	pyr1, _ = sol4_utils.build_gaussian_pyramid(im1, 3, FILTER_SIZE)
 	desc_rad = 3
 	K = 1 + 2 * desc_rad
-	returned_val = find_features(pyr)
+	returned_val1 = find_features(pyr1)
 	# pos.shape should be (N, 2)
-	pos, descriptor = returned_val[0], returned_val[1]
-	assert len(pos.shape) == 2 and pos.shape[1] == 2
+	pos1, descriptor1 = returned_val1[0], returned_val1[1]
+	assert len(pos1.shape) == 2 and pos1.shape[1] == 2
 	# descriptor.shape should be (N, K, K)
-	assert len(descriptor.shape) == 3 and \
-		   descriptor.shape[1] == descriptor.shape[2] == K
+	assert len(descriptor1.shape) == 3 and descriptor1.shape[1] == descriptor1.shape[2] == K
+
+	im2 = read_image(IMG2, IMG_REP)
+	pyr2, _ = sol4_utils.build_gaussian_pyramid(im2, 3, FILTER_SIZE)
+	desc_rad = 3
+	K = 1 + 2 * desc_rad
+	returned_val2 = find_features(pyr2)
+	# pos.shape should be (N, 2)
+	pos2, descriptor2 = returned_val2[0], returned_val2[1]
+	assert len(pos2.shape) == 2 and pos2.shape[1] == 2
+	# descriptor.shape should be (N, K, K)
+	assert len(descriptor2.shape) == 3 and descriptor2.shape[1] == descriptor2.shape[2] == K
+
+	print("Number of features found in img1: {}\n"
+		  "Number of features found in img2: {}".format(len(pos1), len(pos2)))
 	_end_test("3.1.3 - find features")
 
 
@@ -112,21 +139,37 @@ def _test_match_features():
 	im1 = read_image(IMG1, IMG_REP)
 	pyr1, _ = sol4_utils.build_gaussian_pyramid(im1, 3, FILTER_SIZE)
 	returned_val1 = find_features(pyr1)
-	_, desc1 = returned_val1[0], returned_val1[1]
+	pos1, desc1 = returned_val1[0], returned_val1[1]
 
 	im2 = read_image(IMG2, IMG_REP)
 	pyr2, _ = sol4_utils.build_gaussian_pyramid(im2, 3, FILTER_SIZE)
 	returned_val2 = find_features(pyr2)
-	_, desc2 = returned_val2[0], returned_val2[1]
+	pos2, desc2 = returned_val2[0], returned_val2[1]
 
 	# Run method:
 	returned_val_func = match_features(desc1, desc2, MIN_SCORE)
 	matching_desc1, matching_desc2 = returned_val_func[0], returned_val_func[1]
 
+	# Plot number one:
+	points1 = [pos1[i] for i in matching_desc1]
+	xs1 = [a[0] for a in points1]
+	ys1 = [a[1] for a in points1]
+	plt.imshow(im1, cmap='gray')
+	plt.scatter(x=xs1, y=ys1, marker=".")
+	plt.show()
+
+	# Plot number two:
+	points2 = [pos2[j] for j in matching_desc2]
+	xs2 = [a[0] for a in points2]
+	ys2 = [a[1] for a in points2]
+	plt.imshow(im2, cmap='gray')
+	plt.scatter(x=xs2, y=ys2, marker=".")
+	plt.show()
+
 	print("-- Matching 1 ---\n", matching_desc1, '\n')
 	print("-- Matching 2 ---\n", matching_desc2, '\n')
 
-	assert len(matching_desc1.shape) == len(matching_desc2.shape) == 2
+	assert len(matching_desc1.shape) == len(matching_desc2.shape) == 1
 	assert matching_desc1.shape == matching_desc2.shape
 
 
