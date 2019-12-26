@@ -156,6 +156,7 @@ def _test_match_features():
 	ys1 = [a[1] for a in points1]
 	plt.imshow(im1, cmap='gray')
 	plt.scatter(x=xs1, y=ys1, marker=".")
+	plt.title("3.2 - Match Features - 1st img")
 	plt.show()
 
 	# Plot number two:
@@ -164,14 +165,17 @@ def _test_match_features():
 	ys2 = [a[1] for a in points2]
 	plt.imshow(im2, cmap='gray')
 	plt.scatter(x=xs2, y=ys2, marker=".")
+	plt.title("3.2 - Match Features - 2nd img")
 	plt.show()
 
-	print("-- Matching 1 ---\n", matching_desc1, '\n')
-	print("-- Matching 2 ---\n", matching_desc2, '\n')
+	print("-- Num of matched points found: {}".format(len(matching_desc1)))
+	# print("-- Matching 1 ---\n", matching_desc1, '\n')
+	# print("-- Matching 2 ---\n", matching_desc2, '\n')
 
 	assert len(matching_desc1.shape) == len(matching_desc2.shape) == 1
 	assert matching_desc1.shape == matching_desc2.shape
 
+	_end_test("3.2 - Match Features")
 
 """
 Callings.
