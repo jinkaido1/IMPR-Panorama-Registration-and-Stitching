@@ -36,8 +36,8 @@ IMAGES = [IMG1, IMG2]
 
 FILTER_SIZE = 5
 
-MIN_SCORE = 0.5
-
+MIN_SCORE = 0.8
+num_iter, inlier_tol = 50, 10
 """
 Controller.
 """
@@ -46,8 +46,8 @@ test_3_1_sample_descriptor = False
 test_3_1_find_features = False
 test_3_2_match_features = False
 test_3_3_apply_homography = False
-test_3_3_ransac_homography = True
-test_3_3_display_matches = False
+test_3_3_ransac_homography = False
+test_3_3_display_matches = True
 
 """
 Methods
@@ -75,7 +75,7 @@ def _test_harris_corner_detector():
 	plt.title("3.1.1 - Harris Corner Detector")
 	plt.show()
 	s2 = arr2.shape
-
+	print("Found: {} corners in the first image, {} corners in the second image.".format(len(arr1), len(arr2)))
 	assert len(s1) == 2 and s1[1] == 2
 	assert len(s2) == 2 and s2[1] == 2
 	_end_test("3.1.2 - Harris Corner Detector")
@@ -196,8 +196,8 @@ def _test_apply_homography():
 
 
 def _test_rasnac_homography():
-	_start_test("3.3.2 - apply_homography")
-
+	_start_test("3.3.2 - rasnac_homography")
+	_notes("Checks output size only!")
 	im1 = read_image(IMG1, IMG_REP)
 	pyr1, _ = sol4_utils.build_gaussian_pyramid(im1, 3, FILTER_SIZE)
 	returned_val1 = find_features(pyr1)
@@ -215,10 +215,36 @@ def _test_rasnac_homography():
 	points1 = np.array([pos1[i] for i in matching_desc1])
 	points2 = np.array([pos2[j] for j in matching_desc2])
 
-	num_iter, inlier_tol = 1, 0
-	ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False)
+	result = ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False)
+	homography_matrix, inliers_indexes = result[0], result[1]
+
+	# Check matrix sizes.
+	assert homography_matrix.shape[0] == homography_matrix.shape[1] == 3
+	# Check inliers array shape.
+	assert len(inliers_indexes.shape) == 1
+	_end_test("3.3.1 - rasnac_homography")
 
 
+def _test_3_3_display_matches():
+	_start_test("3.3.3 - display_matches")
+	im1 = read_image(IMG1, IMG_REP)
+	pyr1, _ = sol4_utils.build_gaussian_pyramid(im1, 3, FILTER_SIZE)
+	returned_val1 = find_features(pyr1)
+	pos1, desc1 = returned_val1[0], returned_val1[1]
+
+	im2 = read_image(IMG2, IMG_REP)
+	pyr2, _ = sol4_utils.build_gaussian_pyramid(im2, 3, FILTER_SIZE)
+	returned_val2 = find_features(pyr2)
+	pos2, desc2 = returned_val2[0], returned_val2[1]
+
+	returned_val_func = match_features(desc1, desc2, MIN_SCORE)
+	matching_desc1, matching_desc2 = returned_val_func[0], returned_val_func[1]
+	points1 = np.array([pos1[i] for i in matching_desc1])
+	points2 = np.array([pos2[j] for j in matching_desc2])
+	# result = ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False)
+	# homography_matrix, inliers = result[0], result[1]
+	inliers = None
+	display_matches(im1, im2, pos1, pos2, inliers)
 """
 Callings.
 """
@@ -239,3 +265,6 @@ if test_3_3_apply_homography:
 
 if test_3_3_ransac_homography:
 	_test_rasnac_homography()
+
+if test_3_3_display_matches:
+	_test_3_3_display_matches()

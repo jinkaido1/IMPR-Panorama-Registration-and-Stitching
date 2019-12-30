@@ -106,7 +106,10 @@ def sample_descriptor(im, pos, desc_rad):
 		Mu = d_tilda.mean()
 		numerator = d_tilda - Mu
 		denominator = np.linalg.norm((d_tilda - Mu))
-		descriptors[ind, :, :] = numerator / denominator
+		if denominator:
+			descriptors[ind, :, :] = numerator / denominator
+		else:
+			descriptors[ind, :, :] = numerator
 	return descriptors
 
 
@@ -234,8 +237,9 @@ def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=F
 					containing the indices in pos1/pos2 of the maximal set of inlier matches found.
 	"""
 	# Task 3.3.2
+	P1, P2 = points1, points2
 	N = points1.shape[0]
-	homography_matrix, inliers, ourliers = None, [], []
+	Jin = []
 
 	for it in range(num_iter):
 		# Sample 2 sets of 2 points, anc calculate H12 base on the sets.
@@ -244,19 +248,22 @@ def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=F
 		H12 = estimate_rigid_transform(P1j, P2j)
 
 		# Calculate P2'.
-		P2j_tag = apply_homography(P2j, H12)
+		P2_tag = apply_homography(P1, H12)
+		inliers = []
 
-		# Calculate Squared Euclid Distance.
-		Ej = np.linalg.norm(P2j_tag - P2j) ** 2
+		# Calculate Euclid Distance.
+		for j in range(N):
+			Ej = np.linalg.norm(P2_tag[j] - P2[j]) ** 2
+			if Ej < inlier_tol:
+				inliers.append(j)
 
-		if Ej < inlier_tol:
-			inliers.append()
-		else:
-			outliers.append()
+		if len(inliers) > len(Jin):
+			Jin = inliers
 
-
-
-	pass
+	P1Jin = np.array([P1[j] for j in Jin])
+	P2Jin = np.array([P2[j] for j in Jin])
+	homography_matrix = estimate_rigid_transform(P1Jin, P2Jin)
+	return [homography_matrix, np.array(Jin)]
 
 
 def display_matches(im1, im2, points1, points2, inliers):
@@ -269,6 +276,14 @@ def display_matches(im1, im2, points1, points2, inliers):
 	:param inliers: An array with shape (S,) of inlier matches.
 	"""
 	# Task 3.3.3
+	stacked_img = np.hstack([im1, im2])
+	plt.imshow(stacked_img, cmap='gray')
+	plt.axis('off')
+
+	plt.scatter(x=points1[:, 0], y=points1[:, 1], c='r', marker=".")
+	plt.scatter(x=points2[:, 0] + im1.shape[1], y=points2[:, 1], c='r', marker=".")
+
+	plt.show()
 
 	pass
 
@@ -318,6 +333,11 @@ def warp_image(image, homography):
 	:return: A warped image.
 	"""
 	return np.dstack([warp_channel(image[..., channel], homography) for channel in range(3)])
+
+
+"""
+Given code.
+"""
 
 
 def filter_homographies_with_translation(homographies, minimum_right_translation):
