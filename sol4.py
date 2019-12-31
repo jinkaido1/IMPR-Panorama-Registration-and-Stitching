@@ -207,19 +207,15 @@ def apply_homography(pos1, H12):
 	:param H12: A 3x3 homography matrix.
 	:return: An array with the same shape as pos1 with [x,y] point coordinates obtained from transforming pos1 using H12.
 	"""
-	# Task 3.3.1
-	# Add ones to each point.
-	pos1_with_ones = np.ones(shape=(pos1.shape[0], pos1.shape[1] + 1))
-	pos1_with_ones[:, :2] = pos1
-	# Multiply each by H12.
-	pos1_with_ones_multiplied = np.matmul(pos1_with_ones, H12)
-	# Divide by last coordinate.
-	pos2 = pos1_with_ones_multiplied[:, :2]
-	divide_by = np.zeros(shape=pos2.shape)
-	divide_by[:, 0] = pos1_with_ones_multiplied[:, 2]
-	divide_by[:, 1] = pos1_with_ones_multiplied[:, 2]
-	result = pos2 / divide_by
-	return result
+	pos2 = np.ones(shape=(pos1.shape[0], pos1.shape[1] + 1))
+	pos2[:, :2] = pos1
+	pos2 = pos2.T
+	XYZdx = np.dot(H12, pos2).T
+	XYdx, Zdx = XYZdx[:, :2], XYZdx[:, 2]
+	for i in range(len(XYdx)):
+		if Zdx[i] != 0:
+			XYdx[i] = XYdx[i] / Zdx[i]
+	return XYdx
 
 
 def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False):
@@ -253,7 +249,7 @@ def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=F
 
 		# Calculate Euclid Distance.
 		for j in range(N):
-			Ej = np.linalg.norm(P2_tag[j] - P2[j]) ** 2
+			Ej = (np.linalg.norm(P2_tag[j] - P2[j])) ** 2
 			if Ej < inlier_tol:
 				inliers.append(j)
 
@@ -280,12 +276,20 @@ def display_matches(im1, im2, points1, points2, inliers):
 	plt.imshow(stacked_img, cmap='gray')
 	plt.axis('off')
 
+	points2[:, 0] += im1.shape[1]
+
 	plt.scatter(x=points1[:, 0], y=points1[:, 1], c='r', marker=".")
-	plt.scatter(x=points2[:, 0] + im1.shape[1], y=points2[:, 1], c='r', marker=".")
+	plt.scatter(x=points2[:, 0], y=points2[:, 1], c='r', marker=".")
+
+	for idx in range(len(points1)):
+		p1 = points1[idx]
+		p2 = points2[idx]
+		if idx in inliers:  # plot yellow line.
+			plt.plot([p1[0], p2[0]], [p1[1], p2[1]], mfc='r', c='y', lw=.4, ms=1, marker='o')
+		else:               # plot blue line.
+			plt.plot([p1[0], p2[0]], [p1[1], p2[1]], mfc='r', c='b', lw=.4, ms=1, marker='o')
 
 	plt.show()
-
-	pass
 
 
 def accumulate_homographies(H_succesive, m):

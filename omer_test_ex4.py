@@ -35,19 +35,19 @@ IMG2 = 'external/oxford2.jpg'
 IMAGES = [IMG1, IMG2]
 
 FILTER_SIZE = 5
-
 MIN_SCORE = 0.8
-num_iter, inlier_tol = 50, 10
+num_iter, inlier_tol = 50, 2
+
 """
 Controller.
 """
-test_3_1_harris_corner_detector = False
-test_3_1_sample_descriptor = False
-test_3_1_find_features = False
-test_3_2_match_features = False
-test_3_3_apply_homography = False
-test_3_3_ransac_homography = False
-test_3_3_display_matches = True
+test_3_1_harris_corner_detector =    False
+test_3_1_sample_descriptor =         False
+test_3_1_find_features =             False
+test_3_2_match_features =            False
+test_3_3_apply_homography =          False
+test_3_3_ransac_homography =         True
+test_3_3_display_matches =           False
 
 """
 Methods
@@ -218,6 +218,7 @@ def _test_rasnac_homography():
 	result = ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False)
 	homography_matrix, inliers_indexes = result[0], result[1]
 
+	print("Num of inliers found: ", len(inliers_indexes))
 	# Check matrix sizes.
 	assert homography_matrix.shape[0] == homography_matrix.shape[1] == 3
 	# Check inliers array shape.
@@ -241,10 +242,12 @@ def _test_3_3_display_matches():
 	matching_desc1, matching_desc2 = returned_val_func[0], returned_val_func[1]
 	points1 = np.array([pos1[i] for i in matching_desc1])
 	points2 = np.array([pos2[j] for j in matching_desc2])
-	# result = ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False)
-	# homography_matrix, inliers = result[0], result[1]
-	inliers = None
-	display_matches(im1, im2, pos1, pos2, inliers)
+
+	result = ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False)
+	homography_matrix, inliers = result[0], result[1]
+	display_matches(im1, im2, points1, points2, inliers)
+
+
 """
 Callings.
 """
