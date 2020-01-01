@@ -239,8 +239,9 @@ def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=F
 
 	for it in range(num_iter):
 		# Sample 2 sets of 2 points, anc calculate H12 base on the sets.
-		P1j = points1[np.random.choice(points1.shape[0], 2, replace=False)]
-		P2j = points2[np.random.choice(points2.shape[0], 2, replace=False)]
+		idx = np.random.choice(N, 2, replace=False)
+		P1j = points1[idx]
+		P2j = points2[idx]
 		H12 = estimate_rigid_transform(P1j, P2j)
 
 		# Calculate P2'.
@@ -281,13 +282,18 @@ def display_matches(im1, im2, points1, points2, inliers):
 	plt.scatter(x=points1[:, 0], y=points1[:, 1], c='r', marker=".")
 	plt.scatter(x=points2[:, 0], y=points2[:, 1], c='r', marker=".")
 
+	# plot blue line.
 	for idx in range(len(points1)):
+		if idx not in inliers:
+			p1 = points1[idx]
+			p2 = points2[idx]
+			plt.plot([p1[0], p2[0]], [p1[1], p2[1]], mfc='r', c='b', lw=.4, ms=1, marker='o')
+
+	# plot yellow line.
+	for idx in inliers:
 		p1 = points1[idx]
 		p2 = points2[idx]
-		if idx in inliers:  # plot yellow line.
-			plt.plot([p1[0], p2[0]], [p1[1], p2[1]], mfc='r', c='y', lw=.4, ms=1, marker='o')
-		else:               # plot blue line.
-			plt.plot([p1[0], p2[0]], [p1[1], p2[1]], mfc='r', c='b', lw=.4, ms=1, marker='o')
+		plt.plot([p1[0], p2[0]], [p1[1], p2[1]], mfc='r', c='y', lw=.5, ms=1, marker='o')
 
 	plt.show()
 
@@ -304,6 +310,9 @@ def accumulate_homographies(H_succesive, m):
 	:return: A list of M 3x3 homography matrices,
 	  where H2m[i] transforms points from coordinate system i to coordinate system m
 	"""
+	# Task 3.4
+
+
 	pass
 
 

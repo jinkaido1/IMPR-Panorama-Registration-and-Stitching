@@ -46,8 +46,9 @@ test_3_1_sample_descriptor =         False
 test_3_1_find_features =             False
 test_3_2_match_features =            False
 test_3_3_apply_homography =          False
-test_3_3_ransac_homography =         True
+test_3_3_ransac_homography =         False
 test_3_3_display_matches =           False
+test_3_4_accumulate_homographies =   True
 
 """
 Methods
@@ -228,6 +229,7 @@ def _test_rasnac_homography():
 
 def _test_3_3_display_matches():
 	_start_test("3.3.3 - display_matches")
+	_notes("Check the output images!")
 	im1 = read_image(IMG1, IMG_REP)
 	pyr1, _ = sol4_utils.build_gaussian_pyramid(im1, 3, FILTER_SIZE)
 	returned_val1 = find_features(pyr1)
@@ -246,6 +248,13 @@ def _test_3_3_display_matches():
 	result = ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=False)
 	homography_matrix, inliers = result[0], result[1]
 	display_matches(im1, im2, points1, points2, inliers)
+	_end_test("3.3.3 - display_matches")
+
+
+def _test_3_4_accumulate_homographies():
+	_start_test("3.4 - accumulate_homographies")
+
+	pass
 
 
 """
@@ -271,3 +280,6 @@ if test_3_3_ransac_homography:
 
 if test_3_3_display_matches:
 	_test_3_3_display_matches()
+
+if test_3_4_accumulate_homographies:
+	_test_3_4_accumulate_homographies()
