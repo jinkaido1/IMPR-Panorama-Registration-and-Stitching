@@ -41,16 +41,46 @@ num_iter, inlier_tol = 50, 2
 """
 Controller.
 """
-test_3_1_harris_corner_detector =    False
-test_3_1_sample_descriptor =         False
-test_3_1_find_features =             False
-test_3_2_match_features =            False
-test_3_3_apply_homography =          False
-test_3_3_ransac_homography =         False
-test_3_3_display_matches =           False
-test_3_4_accumulate_homographies =   False
-test_4_1_compute_bounding_box =      True
+def controller(test_3_1_harris_corner_detector=    False,
+				test_3_1_sample_descriptor=         False,
+				test_3_1_find_features=             False,
+				test_3_2_match_features=            False,
+				test_3_3_apply_homography=          False,
+				test_3_3_ransac_homography=         False,
+				test_3_3_display_matches=           False,
+				test_3_4_accumulate_homographies=   False,
+				test_4_1_compute_bounding_box=      False,
+				test_4_1_warp_channel=              True):
 
+	if test_3_1_harris_corner_detector:
+		_test_harris_corner_detector()
+
+	if test_3_1_sample_descriptor:
+		_test_sample_descriptor()
+
+	if test_3_1_find_features:
+		_test_find_features()
+
+	if test_3_2_match_features:
+		_test_match_features()
+
+	if test_3_3_apply_homography:
+		_test_apply_homography()
+
+	if test_3_3_ransac_homography:
+		_test_rasnac_homography()
+
+	if test_3_3_display_matches:
+		_test_3_3_display_matches()
+
+	if test_3_4_accumulate_homographies:
+		_test_3_4_accumulate_homographies()
+
+	if test_4_1_compute_bounding_box:
+		_test_4_1_compute_bounding_box()
+
+	if test_4_1_warp_channel:
+		_test_4_1_warp_channel()
 
 """
 Methods
@@ -300,32 +330,19 @@ def _test_4_1_compute_bounding_box():
 	assert returned.dtype == np.int
 	_end_test("4.1 - compute_bounding_box")
 
+def _test_4_1_warp_channel():
+	_start_test("4.1 - warp_channel")
+	image = read_image(IMG1, IMG_REP)
+	homography = np.array([[1., 0, 0],
+						 	[0, 1., 0],
+						 	[0, 0, 1.]])
+	warp_channel(image, homography)
+
+	_end_test("4.1 - warp_channel")
+
+
+
 """
 Callings.
 """
-if test_3_1_harris_corner_detector:
-	_test_harris_corner_detector()
-
-if test_3_1_sample_descriptor:
-	_test_sample_descriptor()
-
-if test_3_1_find_features:
-	_test_find_features()
-
-if test_3_2_match_features:
-	_test_match_features()
-
-if test_3_3_apply_homography:
-	_test_apply_homography()
-
-if test_3_3_ransac_homography:
-	_test_rasnac_homography()
-
-if test_3_3_display_matches:
-	_test_3_3_display_matches()
-
-if test_3_4_accumulate_homographies:
-	_test_3_4_accumulate_homographies()
-
-if test_4_1_compute_bounding_box:
-	_test_4_1_compute_bounding_box()
+controller()

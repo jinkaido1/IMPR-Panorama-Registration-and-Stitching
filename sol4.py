@@ -345,7 +345,7 @@ def compute_bounding_box(homography, w, h):
 	:return: 2x2 array, where the first row is [x,y] of the top left corner,
 	 and the second row is the [x,y] of the bottom right corner
 	"""
-	# Task 4.1
+	# Task 4.1.1
 	coords = np.array([
 		np.array([w, h])
 	])
@@ -366,7 +366,23 @@ def warp_channel(image, homography):
 	:param homography: homograhpy.
 	:return: A 2d warped image.
 	"""
-	pass
+	# Task 4.1.2
+	w, h = image.shape
+	corners = compute_bounding_box(homography, w, h)
+	top_left, bottom_right = corners[0], corners[1]
+
+	new_h, new_w = top_left[1], bottom_right[0]
+	new_img = np.zeros(shape=(new_w, new_h)).astype(np.float64)
+
+	# Grid creation.
+	x, y = np.meshgrid(np.arange(0, new_w), np.arange(0, new_h))
+	pos = np.array([np.array([x[i][j], y[i][j]]) for i in range(new_h) for j in range(new_w)])
+	# Backward warping.
+	inv_homography = np.linalg.inv(homography)
+
+	new_pos = apply_homography(pos, inv_homography)
+
+	return None
 
 
 def warp_image(image, homography):
