@@ -311,9 +311,29 @@ def accumulate_homographies(H_succesive, m):
 	  where H2m[i] transforms points from coordinate system i to coordinate system m
 	"""
 	# Task 3.4
+	H2m = []   # The returned list.
+	M = len(H_succesive)
 
+	for i in range(M):
+		Him = np.eye(3)
+		if m > i:
+			for j in range(i, min(m + 1, M)):
+				Him *= H_succesive[j]
 
-	pass
+		elif m < i:
+			for j in range(m, i + 1):
+				Him *= np.linalg.inv(H_succesive[j])
+
+		elif m == i:
+			pass
+
+		else:
+			raise Exception('Undefined case.')
+
+		Him /= Him[2, 2]
+		H2m.append(Him)
+
+	return H2m
 
 
 def compute_bounding_box(homography, w, h):
