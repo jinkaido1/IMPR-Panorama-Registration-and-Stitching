@@ -48,7 +48,9 @@ test_3_2_match_features =            False
 test_3_3_apply_homography =          False
 test_3_3_ransac_homography =         False
 test_3_3_display_matches =           False
-test_3_4_accumulate_homographies =   True
+test_3_4_accumulate_homographies =   False
+test_4_1_compute_bounding_box =      True
+
 
 """
 Methods
@@ -284,6 +286,20 @@ def _test_3_4_accumulate_homographies():
 	_end_test("3.4 - accumulate_homographies")
 
 
+def _test_4_1_compute_bounding_box():
+	_start_test("4.1 - compute_bounding_box")
+	_notes("\n(1) Checks sizes.\n")
+
+	homography = np.array([[2., 0, 1.],
+						 	[5., 2., 0],
+							[0, 0, 1.]])
+	h, w = 10, 20
+	returned = compute_bounding_box(homography, h, w)
+
+	assert returned.shape == (2, 2)
+	assert returned.dtype == np.int
+	_end_test("4.1 - compute_bounding_box")
+
 """
 Callings.
 """
@@ -310,3 +326,6 @@ if test_3_3_display_matches:
 
 if test_3_4_accumulate_homographies:
 	_test_3_4_accumulate_homographies()
+
+if test_4_1_compute_bounding_box:
+	_test_4_1_compute_bounding_box()

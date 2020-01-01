@@ -345,7 +345,18 @@ def compute_bounding_box(homography, w, h):
 	:return: 2x2 array, where the first row is [x,y] of the top left corner,
 	 and the second row is the [x,y] of the bottom right corner
 	"""
-	pass
+	# Task 4.1
+	coords = np.array([
+		np.array([w, h])
+	])
+	returned_coords = apply_homography(coords, homography)[0]
+
+	new_w, new_h = returned_coords[0], returned_coords[1]
+
+	top_left = np.array([0, new_h])
+	bottom_right = np.array([new_w, 0])
+
+	return np.array([top_left, bottom_right]).astype(np.int)
 
 
 def warp_channel(image, homography):
