@@ -333,8 +333,8 @@ def _test_4_1_compute_bounding_box():
 def _test_4_1_warp_channel():
 	_start_test("4.1 - warp_channel")
 	image = read_image(IMG1, IMG_REP)
-	homography = np.array([[1., 0, 0],
-						 	[0, 1., 0],
+	homography = np.array([[1., 0., 0.],
+							[0., 1., 0.],
 						 	[0, 0, 1.]])
 	warp_channel(image, homography)
 
