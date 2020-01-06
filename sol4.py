@@ -241,22 +241,21 @@ def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=F
 	N = points1.shape[0]
 	Jin = []
 
+	points_to_capture = 1 if translation_only else 2
+
 	for it in range(num_iter):
 		# Sample 2 sets of 2 points, anc calculate H12 base on the sets.
-		idx = np.random.choice(N, 2, replace=False)
+		idx = np.random.choice(N, points_to_capture, replace=False)
 		P1j = points1[idx]
 		P2j = points2[idx]
-		H12 = estimate_rigid_transform(P1j, P2j)
+		H12 = estimate_rigid_transform(P1j, P2j, translation_only)
 
 		# Calculate P2'.
 		P2_tag = apply_homography(P1, H12)
 		inliers = []
 
-		# Calculate Euclid Distance.
-		for j in range(N):
-			Ej = (np.linalg.norm(P2_tag[j] - P2[j])) ** 2
-			if Ej < inlier_tol:
-				inliers.append(j)
+		Ej = np.power(np.linalg.norm(P2_tag - P2, axis=1), 2)
+		inliers = np.where(Ej < inlier_tol)[0]
 
 		if len(inliers) > len(Jin):
 			Jin = inliers
@@ -322,11 +321,11 @@ def accumulate_homographies(H_succesive, m):
 		Him = np.eye(3)
 		if m > i:
 			for j in range(i, min(m + 1, M)):
-				Him *= H_succesive[j]
+				Him = np.dot(Him, H_succesive[j])
 
 		elif m < i:
 			for j in range(m, i):
-				Him *= np.linalg.inv(H_succesive[j])
+				Him = np.dot(Him, np.linalg.inv(H_succesive[j]))
 
 		elif m == i:
 			pass

@@ -30,8 +30,8 @@ Constants.
 """
 IMG_REP = 1
 
-IMG1 = 'external/oxford1.jpg'
-IMG2 = 'external/oxford2.jpg'
+IMG1 = 'external/oxford001.jpg'
+IMG2 = 'external/oxford002.jpg'
 IMAGES = [IMG1, IMG2]
 
 FILTER_SIZE = 5
@@ -42,7 +42,7 @@ LEVELS = 3                                                          # Max levels
 """
 Controller.
 """
-def controller(test_3_1_harris_corner_detector=    False,
+def controller(test_3_1_harris_corner_detector=     False,
 				test_3_1_sample_descriptor=         False,
 				test_3_1_find_features=             False,
 				test_3_2_match_features=            False,
@@ -51,9 +51,9 @@ def controller(test_3_1_harris_corner_detector=    False,
 				test_3_3_display_matches=           False,
 				test_3_4_accumulate_homographies=   False,
 				test_4_1_compute_bounding_box=      False,
-				test_4_1_warp_channel=              True,
+				test_4_1_warp_channel=              False,
 			    test_4_1_warp_image=                False,
-			   	test_oxford_panorama=               False
+			   	test_oxford_panorama=               True
 			   ):
 
 	if test_3_1_harris_corner_detector:
@@ -394,6 +394,9 @@ def _test_4_1_warp_image():
 
 
 def _test_oxford_panorama():
+	_start_test("5 - oxford image.")
+	_notes("\n(1) Don't forget to hashtag the lines in the given code! (the last code block).\n")
+
 	data_dir = 'external'
 	file_prefix = 'oxford'
 	num_images = 2
@@ -402,6 +405,8 @@ def _test_oxford_panorama():
 	gen.align_images()
 	gen.generate_panoramic_images(1)
 	gen.show_panorama(0)
+	_end_test("5 - oxford image.")
+
 
 """
 Callings.
