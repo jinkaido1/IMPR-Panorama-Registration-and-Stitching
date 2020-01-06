@@ -559,7 +559,7 @@ class PanoramicVideoGenerator:
 		# assert will fail if there is overlap in field of view between the left most image and the right most image
 		crop_left = int(self.bounding_boxes[0][1, 0])
 		crop_right = int(self.bounding_boxes[-1][0, 0])
-		assert crop_left < crop_right, 'for testing your code with a few images do not crop.'
+		assert crop_left < crop_right
 		print(crop_left, crop_right)
 		self.panoramas = self.panoramas[:, :, crop_left:crop_right, :]
 
