@@ -44,15 +44,14 @@ DER_VEC_T = DER_VEC.T
 # Blurring kernel size.
 KERNEL_SIZE_BLUR = 3
 
-K = 0.04                                                            # For calculating (det - k*trace).
-LEVELS = 3                                                          # Max levels in gaussian
-PATCH_SIZE = 7                                                      # Patch size.
-ORIG_LEV_IN_PYR = 0                                                 # Index of the original image in pyramid.
-SMALLEST_LEV_IN_PYR = 2                                             # Index of the smallest image in pyramid.
-LEVELS_DIFF = float(2 ** (ORIG_LEV_IN_PYR - SMALLEST_LEV_IN_PYR))   # Scalar to calculate new image index.
-DESC_RAD = 3                                                        # The radius for the descriptor.
-X, Y = 1, 0                                                         # for coordiantes.
-
+K = 0.04  # For calculating (det - k*trace).
+LEVELS = 3  # Max levels in gaussian
+PATCH_SIZE = 7  # Patch size.
+ORIG_LEV_IN_PYR = 0  # Index of the original image in pyramid.
+SMALLEST_LEV_IN_PYR = 2  # Index of the smallest image in pyramid.
+LEVELS_DIFF = float(2 ** (ORIG_LEV_IN_PYR - SMALLEST_LEV_IN_PYR))  # Scalar to calculate new image index.
+DESC_RAD = 3  # The radius for the descriptor.
+X, Y = 1, 0  # for coordiantes.
 
 """
 3 - Image Pair Registration.
@@ -139,67 +138,20 @@ def match_features(desc1, desc2, min_score):
 				1) An array with shape (M,) and dtype int of matching indices in desc1.
 				2) An array with shape (M,) and dtype int of matching indices in desc2.
 	"""
-	# Task 3.2
-	# TODO - fix it!!! too long!
-	match_ind1, match_ind2 = [], []
 	N1, N2 = desc1.shape[0], desc2.shape[0]
+	K = desc1.shape[1]
 
-	bests_for_desc1 = {}   # { i : [best, second_best] }
-	D1j_best1st, D1j_best2nd = (0, 0), (0, 0)  # (ind of patch, score)
-	for j in range(N1):
-		for k in range(N2):
-			D1j = desc1[j, :, :].flatten()
-			D2k = desc2[k, :, :].flatten()
-			Sjk = np.dot(D1j, D2k)   # num in [-1, 1]
+	# Each descriptor turned line and multiple each matched line.
+	desc1, desc2 = desc1.reshape(N1, K * K), desc2.reshape(N2, K * K)
+	descriptors_mul = np.dot(desc1, desc2.T)
 
-			# Set up 1 - Sjk in two best of D1j
-			second_best_score, first_best_score = D1j_best2nd[1], D1j_best1st[1]
-			if Sjk >= second_best_score:
-				if Sjk >= first_best_score:
-					D1j_best2nd = D1j_best1st
-					D1j_best1st = (k, Sjk)
-				else:
-					D1j_best2nd = (k, Sjk)
-		bests_for_desc1[j] = [D1j_best1st, D1j_best2nd]
-		D1j_best1st, D1j_best2nd = (0, 0), (0, 0)  # restart for the next iteration.
+	# Find best 2 for each descriptor.
+	x_axis, y_axis = np.sort(descriptors_mul, axis=0), np.sort(descriptors_mul, axis=1)
+	best_x, best_y = x_axis[-2, :].reshape(1, N2), y_axis[:, -2].reshape(N1, 1)
 
-	bests_for_desc2 = {}
-	D2k_best1st, D2k_best2nd = (0, 0), (0, 0)  # (ind of patch, score)
-	for k in range(N2):
-		for j in range(N1):
-			D1j = desc1[j, :, :].flatten()
-			D2k = desc2[k, :, :].flatten()
-			Sjk = np.dot(D1j, D2k)
-
-			second_best_score, first_best_score = D2k_best2nd[1], D2k_best1st[1]
-			if Sjk >= second_best_score:
-				if Sjk >= first_best_score:
-					D2k_best2nd = D2k_best1st
-					D2k_best1st = (j, Sjk)
-				else:
-					D2k_best2nd = (j, Sjk)
-		bests_for_desc2[k] = [D2k_best1st, D2k_best2nd]
-		D2k_best1st, D2k_best2nd = (0, 0), (0, 0)  # (ind of patch, score)
-
-	for j, k in itertools.product(range(N1), range(N2)):
-		two_best_of_j = bests_for_desc1[j]  # array of 2 tuples
-		indexes_of_two_best_of_j = [two_best_of_j[0][0], two_best_of_j[1][0]]
-
-		two_best_of_k = bests_for_desc2[k]  # array of 2 tuples
-		indexes_of_two_best_of_k = [two_best_of_k[0][0], two_best_of_k[1][0]]
-
-		cond1 = j in indexes_of_two_best_of_k
-		cond2 = k in indexes_of_two_best_of_j
-
-		if cond1 and cond2:
-			Sjk = [t[1] for t in two_best_of_j if t[0] == k][0]
-			Skj = [t[1] for t in two_best_of_k if t[0] == j][0]
-			cond3 = Sjk > min_score and Skj > min_score
-			if cond1 and cond2 and cond3:
-				match_ind1.append(j)
-				match_ind2.append(k)
-
-	return [np.array(match_ind1), np.array(match_ind2)]
+	# Return 2 best matches.
+	first_match, second_match = np.where((descriptors_mul >= best_x) & (descriptors_mul >= best_y) & (descriptors_mul > min_score))
+	return [first_match, second_match]
 
 
 def apply_homography(pos1, H12):
@@ -314,7 +266,7 @@ def accumulate_homographies(H_succesive, m):
 	  where H2m[i] transforms points from coordinate system i to coordinate system m
 	"""
 	# Task 3.4
-	H2m = []   # The returned list.
+	H2m = []  # The returned list.
 	M = len(H_succesive) + 1
 
 	for i in range(M):
