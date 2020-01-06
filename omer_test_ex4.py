@@ -37,6 +37,7 @@ IMAGES = [IMG1, IMG2]
 FILTER_SIZE = 5
 MIN_SCORE = 0.8
 num_iter, inlier_tol = 50, 2
+LEVELS = 3                                                          # Max levels in gaussian
 
 """
 Controller.
@@ -50,8 +51,9 @@ def controller(test_3_1_harris_corner_detector=    False,
 				test_3_3_display_matches=           False,
 				test_3_4_accumulate_homographies=   False,
 				test_4_1_compute_bounding_box=      False,
-				test_4_1_warp_channel=              False,
-			    test_4_1_warp_image=                True
+				test_4_1_warp_channel=              True,
+			    test_4_1_warp_image=                False,
+			   	test_oxford_panorama=               False
 			   ):
 
 	if test_3_1_harris_corner_detector:
@@ -86,6 +88,9 @@ def controller(test_3_1_harris_corner_detector=    False,
 
 	if test_4_1_warp_image:
 		_test_4_1_warp_image()
+
+	if test_oxford_panorama:
+		_test_oxford_panorama()
 
 """
 Methods
@@ -387,6 +392,16 @@ def _test_4_1_warp_image():
 	# plt.show()
 	_end_test("4.1 - warp_image")
 
+
+def _test_oxford_panorama():
+	data_dir = 'external'
+	file_prefix = 'oxford'
+	num_images = 2
+
+	gen = PanoramicVideoGenerator(data_dir, file_prefix, num_images)
+	gen.align_images()
+	gen.generate_panoramic_images(1)
+	gen.show_panorama(0)
 
 """
 Callings.

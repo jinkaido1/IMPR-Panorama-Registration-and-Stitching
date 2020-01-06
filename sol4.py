@@ -211,12 +211,14 @@ def apply_homography(pos1, H12):
 	"""
 	pos2 = np.ones(shape=(pos1.shape[0], pos1.shape[1] + 1))
 	pos2[:, :2] = pos1
+
 	pos2 = pos2.T
 	XYZdx = np.dot(H12, pos2).T
+
 	XYdx, Zdx = XYZdx[:, :2], XYZdx[:, 2]
-	for i in range(len(XYdx)):
-		if Zdx[i] != 0:
-			XYdx[i] = XYdx[i] / Zdx[i]
+
+	XYdx[:, 0] /= Zdx
+	XYdx[:, 1] /= Zdx
 	return XYdx
 
 
@@ -352,7 +354,7 @@ def compute_bounding_box(homography, w, h):
 	returned_coords = apply_homography(corners, homography)
 
 	bottom_right = np.array([np.max(returned_coords[:, 0]), np.max(returned_coords[:, 1])])
-	top_left = np.array([np.min(returned_coords[:, 1]), np.min(returned_coords[:, 1])])
+	top_left = np.array([np.min(returned_coords[:, 0]), np.min(returned_coords[:, 1])])
 
 	return np.array([top_left, bottom_right]).astype(np.int)
 
@@ -370,18 +372,13 @@ def warp_channel(image, homography):
 	top_left, bottom_right = corners[0], corners[1]
 	x, y = np.meshgrid(np.arange(top_left[0], bottom_right[0]),
 					   np.arange(top_left[1], bottom_right[1]))
-	coords = np.vstack([x.ravel(), y.ravel()])
+	coords = np.dstack([x, y])
+	coords = coords.reshape(x.shape[0] * x.shape[1], 2)
 
 	inv_homography = np.linalg.inv(homography)
-	coords = apply_homography(coords.T, inv_homography)
+	coords = apply_homography(coords, inv_homography).reshape(x.shape[0], x.shape[1], 2)
 
-	new_h = abs(top_left[0] - bottom_right[0])
-	new_w = abs(top_left[1] - bottom_right[1])
-
-	new_x = coords[:, ::2].reshape(new_w, new_h)
-	new_y = coords[:, 1::2].reshape(new_w, new_h)
-
-	new_img = map_coordinates(image, [new_y, new_x], order=1, prefilter=False)
+	new_img = map_coordinates(image, [coords[:, :, 1], coords[:, :, 0]], order=1, prefilter=False)
 	return new_img
 
 
