@@ -204,7 +204,6 @@ def ransac_homography(points1, points2, num_iter, inlier_tol, translation_only=F
 
 		# Calculate P2'.
 		P2_tag = apply_homography(P1, H12)
-		inliers = []
 
 		Ej = np.power(np.linalg.norm(P2_tag - P2, axis=1), 2)
 		inliers = np.where(Ej < inlier_tol)[0]
