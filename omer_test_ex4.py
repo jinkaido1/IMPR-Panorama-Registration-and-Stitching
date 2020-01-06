@@ -288,9 +288,9 @@ def _test_3_4_accumulate_homographies():
 	_notes("\n(1) Checks sizes.\n(2) Check value (very simple case).\n")
 
 	# Creating some random 3*3 matrices.
-	H_succesive, m, M = [], 20, 20
-	for i in range(20):
-		if i < 19:
+	H_succesive, m, M = [], 3, 5   # There suppose to be 4 matrices in H_suc
+	for i in range(M - 1):
+		if i < M - 1:
 			new_mat = np.array([[1, 0, 0],
 								[0, 1, 0],
 								[0, 0, 1]])
@@ -303,15 +303,11 @@ def _test_3_4_accumulate_homographies():
 	H2m_1 = accumulate_homographies(H_succesive, m)
 	l = len(H2m_1)
 	s = H2m_1[0].shape
-	last_mat = H2m_1[M - 1]
 
 	# Shape check
 	assert len(s) + 1 == 3
 	assert s[0] == s[1] == 3
-	assert l == M
-	assert np.array_equal(last_mat, np.array([[1., 0, 0],
-											 [0, 1., 0],
-											 [0, 0, 1.]]))
+	assert l == M, "got: {}, instead of: {}".format(l, M)
 
 	_end_test("3.4 - accumulate_homographies")
 
@@ -330,14 +326,23 @@ def _test_4_1_compute_bounding_box():
 	assert returned.dtype == np.int
 	_end_test("4.1 - compute_bounding_box")
 
+
 def _test_4_1_warp_channel():
 	_start_test("4.1 - warp_channel")
 	image = read_image(IMG1, IMG_REP)
-	homography = np.array([[1., 0., 0.],
-							[0., 1., 0.],
-						 	[0, 0, 1.]])
-	warp_channel(image, homography)
 
+	plt.imshow(image, cmap='gray')
+	plt.title('warp channel - original')
+	plt.show()
+
+	homography = np.array([[np.cos(30), -np.sin(30),  0.],
+						   [np.sin(30),  np.cos(30),  0.],
+						   [0.,                  0.,  1.]])
+	warped = warp_channel(image, homography)
+
+	plt.imshow(warped, cmap='gray')
+	plt.title('warp channel - warped')
+	plt.show()
 	_end_test("4.1 - warp_channel")
 
 

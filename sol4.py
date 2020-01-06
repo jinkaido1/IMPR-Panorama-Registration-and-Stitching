@@ -44,7 +44,6 @@ DER_VEC_T = DER_VEC.T
 # Blurring kernel size.
 KERNEL_SIZE_BLUR = 3
 
-# For question 3.1.
 K = 0.04                                                            # For calculating (det - k*trace).
 LEVELS = 3                                                          # Max levels in gaussian
 PATCH_SIZE = 7                                                      # Patch size.
@@ -52,6 +51,8 @@ ORIG_LEV_IN_PYR = 0                                                 # Index of t
 SMALLEST_LEV_IN_PYR = 2                                             # Index of the smallest image in pyramid.
 LEVELS_DIFF = float(2 ** (ORIG_LEV_IN_PYR - SMALLEST_LEV_IN_PYR))   # Scalar to calculate new image index.
 DESC_RAD = 3                                                        # The radius for the descriptor.
+X, Y = 1, 0                                                         # for coordiantes.
+
 
 """
 3 - Image Pair Registration.
@@ -139,6 +140,7 @@ def match_features(desc1, desc2, min_score):
 				2) An array with shape (M,) and dtype int of matching indices in desc2.
 	"""
 	# Task 3.2
+	# TODO - fix it!!! too long!
 	match_ind1, match_ind2 = [], []
 	N1, N2 = desc1.shape[0], desc2.shape[0]
 
@@ -312,7 +314,7 @@ def accumulate_homographies(H_succesive, m):
 	"""
 	# Task 3.4
 	H2m = []   # The returned list.
-	M = len(H_succesive)
+	M = len(H_succesive) + 1
 
 	for i in range(M):
 		Him = np.eye(3)
@@ -321,7 +323,7 @@ def accumulate_homographies(H_succesive, m):
 				Him *= H_succesive[j]
 
 		elif m < i:
-			for j in range(m, i + 1):
+			for j in range(m, i):
 				Him *= np.linalg.inv(H_succesive[j])
 
 		elif m == i:
@@ -346,15 +348,11 @@ def compute_bounding_box(homography, w, h):
 	 and the second row is the [x,y] of the bottom right corner
 	"""
 	# Task 4.1.1
-	coords = np.array([
-		np.array([w, h])
-	])
-	returned_coords = apply_homography(coords, homography)[0]
+	corners = np.array([[0, 0], [w, 0], [0, h], [w, h]])
+	returned_coords = apply_homography(corners, homography)
 
-	new_w, new_h = returned_coords[0], returned_coords[1]
-
-	top_left = np.array([0, new_h])
-	bottom_right = np.array([new_w, 0])
+	bottom_right = np.array([np.max(returned_coords[:, 0]), np.max(returned_coords[:, 1])])
+	top_left = np.array([np.min(returned_coords[:, 1]), np.min(returned_coords[:, 1])])
 
 	return np.array([top_left, bottom_right]).astype(np.int)
 
@@ -367,23 +365,24 @@ def warp_channel(image, homography):
 	:return: A 2d warped image.
 	"""
 	# Task 4.1.2
-	w, h = image.shape
-	corners = compute_bounding_box(homography, w, h)
-	top_left, bottom_right = corners[0], corners[1]
-	new_h, new_w = top_left[1], bottom_right[0]
+	h, w = image.shape
+	corners = compute_bounding_box(homography, w, h)  # shape=(2,2)
+	bottom_right, top_left = corners[0], corners[1]
+	x, y = np.meshgrid(np.arange(bottom_right[0], top_left[0] + 1),
+					   np.arange(bottom_right[1], top_left[1] + 1))
+	coords = np.vstack([x.ravel(), y.ravel()])
 
-	# Grid creation.
-	x, y = np.meshgrid(np.arange(0, new_w), np.arange(0, new_h))
-	pos = np.array([np.array([x[i][j], y[i][j]]) for i in range(new_h) for j in range(new_w)])
-
-	# Backward warping.
 	inv_homography = np.linalg.inv(homography)
-	new_pos = apply_homography(pos, inv_homography)
+	coords = apply_homography(coords.T, inv_homography)
 
-	interpolated = map_coordinates(image, [new_pos[:, 1], new_pos[:, 0]], order=1, prefilter=False)
+	new_h = top_left[0] - bottom_right[0] + 1
+	new_w = top_left[1] - bottom_right[0] + 1
 
-	return interpolated.reshape(bottom_right[1] - top_left[1] + 1, bottom_right[0] - top_left[0] + 1)
+	new_x = coords[:, ::2].reshape(new_w, new_h)
+	new_y = coords[:, 1::2].reshape(new_w, new_h)
 
+	new_img = map_coordinates(image, [new_y, new_x], order=1, prefilter=False)
+	return new_img
 
 
 
