@@ -44,14 +44,14 @@ DER_VEC_T = DER_VEC.T
 # Blurring kernel size.
 KERNEL_SIZE_BLUR = 3
 
-K = 0.04  # For calculating (det - k*trace).
-LEVELS = 3  # Max levels in gaussian
-PATCH_SIZE = 7  # Patch size.
-ORIG_LEV_IN_PYR = 0  # Index of the original image in pyramid.
-SMALLEST_LEV_IN_PYR = 2  # Index of the smallest image in pyramid.
+K = 0.04                                                           # For calculating (det - k*trace).
+LEVELS = 3                                                         # Max levels in gaussian
+PATCH_SIZE = 7                                                     # Patch size.
+ORIG_LEV_IN_PYR = 0                                                # Index of the original image in pyramid.
+SMALLEST_LEV_IN_PYR = 2                                            # Index of the smallest image in pyramid.
 LEVELS_DIFF = float(2 ** (ORIG_LEV_IN_PYR - SMALLEST_LEV_IN_PYR))  # Scalar to calculate new image index.
-DESC_RAD = 3  # The radius for the descriptor.
-X, Y = 1, 0  # for coordiantes.
+DESC_RAD = 3                                                       # The radius for the descriptor.
+X, Y = 1, 0                                                        # for coordiantes.
 
 """
 3 - Image Pair Registration.
@@ -66,7 +66,8 @@ def harris_corner_detector(im):
 	:return: An array with shape (N,2), where ret[i,:] are the [x,y] coordinates of the ith corner points.
 	"""
 	# Task 3.1.1
-	Ix, Iy = convolve2d(im, DER_VEC, mode="same", boundary="symm"), convolve2d(im, DER_VEC_T, mode="same", boundary="symm")
+	Ix, Iy = convolve2d(im, DER_VEC, mode="same", boundary="symm"), \
+			 convolve2d(im, DER_VEC_T, mode="same", boundary="symm")
 
 	Ix_squared = Ix * Ix
 	Iy_squared = Iy * Iy
@@ -150,7 +151,9 @@ def match_features(desc1, desc2, min_score):
 	best_x, best_y = x_axis[-2, :].reshape(1, N2), y_axis[:, -2].reshape(N1, 1)
 
 	# Return 2 best matches.
-	first_match, second_match = np.where((descriptors_mul >= best_x) & (descriptors_mul >= best_y) & (descriptors_mul > min_score))
+	first_match, second_match = np.where((descriptors_mul >= best_x) &
+										 (descriptors_mul >= best_y) &
+										 (descriptors_mul > min_score))
 	return [first_match, second_match]
 
 
