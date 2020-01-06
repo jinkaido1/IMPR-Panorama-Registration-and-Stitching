@@ -366,24 +366,23 @@ def warp_channel(image, homography):
 	"""
 	# Task 4.1.2
 	h, w = image.shape
-	corners = compute_bounding_box(homography, w, h)  # shape=(2,2)
-	bottom_right, top_left = corners[0], corners[1]
-	x, y = np.meshgrid(np.arange(bottom_right[0], top_left[0] + 1),
-					   np.arange(bottom_right[1], top_left[1] + 1))
+	corners = compute_bounding_box(homography, w, h)
+	top_left, bottom_right = corners[0], corners[1]
+	x, y = np.meshgrid(np.arange(top_left[0], bottom_right[0]),
+					   np.arange(top_left[1], bottom_right[1]))
 	coords = np.vstack([x.ravel(), y.ravel()])
 
 	inv_homography = np.linalg.inv(homography)
 	coords = apply_homography(coords.T, inv_homography)
 
-	new_h = top_left[0] - bottom_right[0] + 1
-	new_w = top_left[1] - bottom_right[0] + 1
+	new_h = abs(top_left[0] - bottom_right[0])
+	new_w = abs(top_left[1] - bottom_right[1])
 
 	new_x = coords[:, ::2].reshape(new_w, new_h)
 	new_y = coords[:, 1::2].reshape(new_w, new_h)
 
 	new_img = map_coordinates(image, [new_y, new_x], order=1, prefilter=False)
 	return new_img
-
 
 
 def warp_image(image, homography):

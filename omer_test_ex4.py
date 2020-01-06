@@ -50,7 +50,9 @@ def controller(test_3_1_harris_corner_detector=    False,
 				test_3_3_display_matches=           False,
 				test_3_4_accumulate_homographies=   False,
 				test_4_1_compute_bounding_box=      False,
-				test_4_1_warp_channel=              True):
+				test_4_1_warp_channel=              False,
+			    test_4_1_warp_image=                True
+			   ):
 
 	if test_3_1_harris_corner_detector:
 		_test_harris_corner_detector()
@@ -81,6 +83,9 @@ def controller(test_3_1_harris_corner_detector=    False,
 
 	if test_4_1_warp_channel:
 		_test_4_1_warp_channel()
+
+	if test_4_1_warp_image:
+		_test_4_1_warp_image()
 
 """
 Methods
@@ -335,16 +340,52 @@ def _test_4_1_warp_channel():
 	plt.title('warp channel - original')
 	plt.show()
 
-	homography = np.array([[np.cos(30), -np.sin(30),  0.],
-						   [np.sin(30),  np.cos(30),  0.],
+	# Check Rotation.
+	theta = 100
+	homography = np.array([[np.cos(theta), -np.sin(theta),  0.],
+						   [np.sin(theta),  np.cos(theta),  0.],
 						   [0.,                  0.,  1.]])
 	warped = warp_channel(image, homography)
-
 	plt.imshow(warped, cmap='gray')
-	plt.title('warp channel - warped')
+	plt.title('warp channel - warped- rotation by {}'.format(theta))
 	plt.show()
+
+	# # Check translation.
+	# homography = np.array([[1., 0., 1.],
+	# 					   [0., 1., 1.],
+	# 					   [0., 0., 1.]])
+	# warped = warp_channel(image, homography)
+	# plt.imshow(warped, cmap='gray')
+	# plt.title('warp channel - warped - translation')
+	# plt.show()
 	_end_test("4.1 - warp_channel")
 
+def _test_4_1_warp_image():
+	_start_test("4.1 - warp_image")
+	image = read_image(IMG1, 2)
+	plt.imshow(image)
+	plt.title('warp channel - original')
+	plt.show()
+
+	# Check Rotation.
+	theta = 30
+	homography = np.array([[np.cos(theta), -np.sin(theta),  0.],
+						   [np.sin(theta),  np.cos(theta),  0.],
+						   [0.,                  0.,  1.]])
+	warped = warp_image(image, homography)
+	plt.imshow(warped)
+	plt.title('warp channel - warped- rotation by {}'.format(theta))
+	plt.show()
+
+	# # Check translation.
+	# homography = np.array([[1., 0., 1.],
+	# 					   [0., 1., 1.],
+	# 					   [0., 0., 1.]])
+	# warped = warp_channel(image, homography)
+	# plt.imshow(warped, cmap='gray')
+	# plt.title('warp channel - warped - translation')
+	# plt.show()
+	_end_test("4.1 - warp_image")
 
 
 """
